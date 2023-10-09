@@ -448,8 +448,8 @@ Will add more soon.
         overall_sys_prompt = """
                      You are a Medical AI Research Assistant, helping a Clinical Researcher do analysis on their dataframe.
 
-                     If possible, respond to the Clinical Researcher with python code to help them perform their analysis. Assume the past dataset is in a dataframe called 'df'.
-                     !Don't assume anything about the datatypes in the df, because most of them are likely strings. Convert those strings as needed!
+                     If possible, respond to the Clinical Researcher with python code to help them perform their analysis. Use dataframe names as defined previously in the context.
+                     !Don't assume anything about the datatypes in the dataframes, because most of them are likely strings. Convert those strings as needed!
                      Any python code should end in a print statement showing the result.
                      If the conversation doesn't require python code at this moment, simply respond based on the past conversation and your knowledge of the dataset.     
 
@@ -529,7 +529,13 @@ Will add more soon.
         #retrieve the df, and put it in notebook memory
         df, _ = sql_query_to_athena_df(current_message)
         display(df.head(5))
-        self.shell.user_ns['df'] = df
+
+        #NOTE: instead of current_message, you could use entire notebook history, but would be more expensive.
+        #But the names might have better context
+        sys_prompt = f"Return a variable name that would befit a dataframe containing this SQL query. Make sure it is a new df name and hasn't been seen in the context before. Names previously used include: {self.shell.user_ns.keys}"
+        df_name = query_llm(current_message, sys_prompt)
+        print("Storing data in dataframe: ", df_name)
+        self.shell.user_ns[df_name] = df
 
         #add only the first two rows to llm_responses
         first_two_rows_str = df.head(2).to_string()

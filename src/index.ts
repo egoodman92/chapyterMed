@@ -179,6 +179,9 @@ const plugin: JupyterFrontEndPlugin<void> = {
   requires: [INotebookTracker],
   // optional: [ISettingRegistry],
   activate: (app: JupyterFrontEnd, tracker: INotebookTracker) => {
+
+    console.log("My custom extension is active!");
+
     NotebookActions.executed.connect((sender, args) => {
 
       /*
@@ -300,6 +303,8 @@ const plugin: JupyterFrontEndPlugin<void> = {
     });
 
     tracker.widgetAdded.connect((sender, notebookPanel) => {
+      console.log("Found a notebook!");
+
       notebookPanel.context.ready.then(() => {
         notebookPanel.content.widgets.forEach(cell => {
           switch (cell.model.type) {
@@ -330,6 +335,26 @@ const plugin: JupyterFrontEndPlugin<void> = {
         })
       })
     });
+
+
+
+    tracker.widgetAdded.connect((sender, notebookPanel) => {
+      notebookPanel.content.activeCellChanged.connect(() => {
+        console.log("Active cell changed");
+        const cell = notebookPanel.content.activeCell;
+        if (cell && cell.model.type === 'raw') {
+          console.log("Attempting to execute raw cell");
+          const code = cell.model.toString();
+          notebookPanel.sessionContext.session?.kernel?.requestExecute({ code });
+        }
+      });
+    });
+    
+
+
+
+
+
   }
 };
 
