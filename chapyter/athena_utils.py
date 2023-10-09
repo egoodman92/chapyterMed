@@ -92,9 +92,9 @@ def sql_query_to_athena_df(query):
     return df, query
 
 
-def query_llm(llm_prompt, sys_prompt):
+def query_llm(llm_prompt, sys_prompt, model='gpt-4'):
     response = openai.ChatCompletion.create(
-        model='gpt-4',
+        model=model,
         messages=[
             {"role": "system", "content": sys_prompt},
             {"role": "user", "content": llm_prompt}

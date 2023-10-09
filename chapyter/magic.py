@@ -530,11 +530,15 @@ Will add more soon.
         df, _ = sql_query_to_athena_df(current_message)
         display(df.head(5))
 
-        #NOTE: instead of current_message, you could use entire notebook history, but would be more expensive.
-        #But the names might have better context
-        sys_prompt = f"Return a variable name that would befit a dataframe containing this SQL query. Make sure it is a new df name and hasn't been seen in the context before. Names previously used include: {self.shell.user_ns.keys}"
-        df_name = query_llm(current_message, sys_prompt)
-        print("Storing data in dataframe: ", df_name)
+        # context = get_notebook_ordered_history(current_message, os.getenv('NOTEBOOK_NAME'))
+        # context = context.replace("Results stored in dataframe:  ", "")
+        # sys_prompt = "Return a variable name that would befit a dataframe containing the results from this SQL query. Make sure it is a new df name and hasn't been seen in the context before. Only return the new df name as a single string. Don't include any prefix aside from the single string."
+        # df_name = query_llm(context, sys_prompt, model='gpt-3.5-turbo')
+
+        sys_prompt = f"Return a variable name that would befit a dataframe containing the results from this SQL query. Names that are not allowed include {self.shell.user_ns.keys()}"
+        print("SYS PROMPT", sys_prompt)
+        df_name = query_llm(current_message, sys_prompt, model='gpt-3.5-turbo')
+        print("Results stored in dataframe: ", df_name)
         self.shell.user_ns[df_name] = df
 
         #add only the first two rows to llm_responses
